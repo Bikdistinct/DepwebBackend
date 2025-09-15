@@ -48,7 +48,7 @@ const login = (req, res) => {
       { expiresIn: "1d" } // token expiry
     );
 
-    return res.json({ message: "Login successful", token });
+    return res.json({ message: "Login successful", token,username });
   }
 
   return res.status(401).json({ message: "Invalid username or password" });
