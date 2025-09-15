@@ -33,33 +33,105 @@
 // module.exports = { login, logout, isAuthenticated };
 
 
+// require("dotenv").config();
+// const jwt = require("jsonwebtoken");
+
+// const login = (req, res) => {
+//   const { username, password } = req.body;
+
+//   // Check credentials from .env
+//   if (username === process.env.USERN && password === process.env.PASSWORD) {
+//     // Generate JWT token
+//     const token = jwt.sign(
+//       { username }, // payload
+//       process.env.JWT_SECRET, // secret
+//       { expiresIn: "1d" } // token expiry
+//     );
+
+//     return res.json({ message: "Login successful", token,username });
+//   }
+
+//   return res.status(401).json({ message: "Invalid username or password" });
+// };
+
+// const logout = (req, res) => {
+//   // With JWT, logout is handled on frontend by deleting token
+//   return res.json({ message: "Logout successful" });
+// };
+
+// // Middleware to check if user is authenticated
+// const isAuthenticated = (req, res, next) => {
+//   const authHeader = req.headers["authorization"];
+//   const token = authHeader && authHeader.split(" ")[1];
+
+//   if (!token) {
+//     return res.status(401).json({ message: "Not authenticated" });
+//   }
+
+//   jwt.verify(token, process.env.JWT_SECRET, (err, decoded) => {
+//     if (err) return res.status(403).json({ message: "Invalid token" });
+
+//     req.user = decoded; // attach user payload to request
+//     next();
+//   });
+// };
+
+// module.exports = { login, logout, isAuthenticated };
+
+
 require("dotenv").config();
 const jwt = require("jsonwebtoken");
 
 const login = (req, res) => {
   const { username, password } = req.body;
+  let role = null;
 
-  // Check credentials from .env
-  if (username === process.env.USERN && password === process.env.PASSWORD) {
-    // Generate JWT token
+  // Check for admin
+  if (username === process.env.ADMIN_USER && password === process.env.ADMIN_PASS) {
+    role = "admin";
+  }
+  // Check for doctor
+  else if (username === process.env.DOCTOR_USER && password === process.env.DOCTOR_PASS) {
+    role = "doctor";
+  }
+
+  if (role) {
+    // Generate JWT with role included
     const token = jwt.sign(
-      { username }, // payload
-      process.env.JWT_SECRET, // secret
-      { expiresIn: "1d" } // token expiry
+      { username, role },
+      process.env.JWT_SECRET,
+      { expiresIn: "1d" }
     );
 
-    return res.json({ message: "Login successful", token,username });
+    return res.json({ message: "Login successful", role, token,username });
   }
 
   return res.status(401).json({ message: "Invalid username or password" });
 };
 
 const logout = (req, res) => {
-  // With JWT, logout is handled on frontend by deleting token
+  // Frontend deletes token
   return res.json({ message: "Logout successful" });
 };
 
 // Middleware to check if user is authenticated
+// const isAuthenticated = (req, res, next) => {
+//   const authHeader = req.headers["authorization"];
+//   const token = authHeader && authHeader.split(" ")[1];
+
+//   if (!token) {
+//     return res.status(401).json({ message: "Not authenticated" });
+//   }
+
+//   jwt.verify(token, process.env.JWT_SECRET, (err, decoded) => {
+//     if (err) return res.status(403).json({ message: "Invalid token" });
+
+//     req.user = decoded; // contains { username, role }
+//     next();
+//   });
+// };
+
+// // Middleware to check if user is authenticated
 const isAuthenticated = (req, res, next) => {
   const authHeader = req.headers["authorization"];
   const token = authHeader && authHeader.split(" ")[1];
@@ -75,5 +147,16 @@ const isAuthenticated = (req, res, next) => {
     next();
   });
 };
+
+
+// Middleware to restrict by role
+// const authorizeRoles = (...allowedRoles) => {
+//   return (req, res, next) => {
+//     if (!req.user || !allowedRoles.includes(req.user.role)) {
+//       return res.status(403).json({ message: "Access denied" });
+//     }
+//     next();
+//   };
+// };
 
 module.exports = { login, logout, isAuthenticated };
