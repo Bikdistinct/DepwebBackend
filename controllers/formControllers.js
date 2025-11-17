@@ -61,9 +61,13 @@ exports.submitUserData = async (req, res) => {
     const existingData = existingDataResponse.data.data || [];
     console.log("existing raw", existingData);
     // ✅ Step 2: Check if MED1_1 already exists
+    // const alreadyExists = existingData.some(
+    //   (entry) => entry.MED1_1 === uniqueId
+    // );
     const alreadyExists = existingData.some(
-      (entry) => entry.MED1_1 === uniqueId
+      (entry) => String(entry.MED1_1).trim() === String(uniqueId).trim()
     );
+
     console.log("already exist", alreadyExists);
     if (alreadyExists) {
       return res.status(409).json({
